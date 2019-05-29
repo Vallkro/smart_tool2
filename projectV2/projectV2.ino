@@ -42,11 +42,11 @@ SHORTUNION_t torqueUni;
 Adafruit_LSM9DS1 lsm = Adafruit_LSM9DS1(LSM9DS1_XGCS, LSM9DS1_MCS);
 
 //setting up global vars;
-char number[50];  
+char number[50];
 char state = 'i';
 bool done = false;
 byte stage = -1;
-short index = 0;
+short indexR = 0;
 short counter = 0;
 
 
@@ -121,9 +121,9 @@ void setupSensor()
 
 void setup()
 {
-  angle.number=0;
-   data[0] = temperature;
-    data[1] = luminosity;
+  angle.number = 0;
+  data[0] = temperature;
+  data[1] = luminosity;
   Serial.begin(9600);
   while (!Serial) {
     delay(1); // will pause Zero, Leonardo, etc until serial console opens
@@ -180,42 +180,42 @@ void readNprintGyro() {
   gyroZ = g.gyro.z;
 
 
-  
-    Serial.print("Accel X: "); Serial.print(a.acceleration.x); Serial.print(" m/s^2");
-    Serial.print("\tY: "); Serial.print(a.acceleration.y);     Serial.print(" m/s^2 ");
-    Serial.print("\tZ: "); Serial.print(a.acceleration.z);     Serial.println(" m/s^2 ");
-/*
-    Serial.print("Mag X: "); Serial.print(m.magnetic.x);   Serial.print(" gauss");
-    Serial.print("\tY: "); Serial.print(m.magnetic.y);     Serial.print(" gauss");
-    Serial.print("\tZ: "); Serial.print(m.magnetic.z);     Serial.println(" gauss");
 
-    Serial.print("Gyro X: "); Serial.print(g.gyro.x);   Serial.print(" dps");
-    Serial.print("\tY: "); Serial.print(g.gyro.y);      Serial.print(" dps");
-    Serial.print("\tZ: "); Serial.print(g.gyro.z);      Serial.println(" dps");
+  Serial.print("Accel X: "); Serial.print(a.acceleration.x); Serial.print(" m/s^2");
+  Serial.print("\tY: "); Serial.print(a.acceleration.y);     Serial.print(" m/s^2 ");
+  Serial.print("\tZ: "); Serial.print(a.acceleration.z);     Serial.println(" m/s^2 ");
+  /*
+      Serial.print("Mag X: "); Serial.print(m.magnetic.x);   Serial.print(" gauss");
+      Serial.print("\tY: "); Serial.print(m.magnetic.y);     Serial.print(" gauss");
+      Serial.print("\tZ: "); Serial.print(m.magnetic.z);     Serial.println(" gauss");
 
-    Serial.println();
+      Serial.print("Gyro X: "); Serial.print(g.gyro.x);   Serial.print(" dps");
+      Serial.print("\tY: "); Serial.print(g.gyro.y);      Serial.print(" dps");
+      Serial.print("\tZ: "); Serial.print(g.gyro.z);      Serial.println(" dps");
+
+      Serial.println();
   */
   //delay(20);
 }//readNprintGryo
 
-void readCurrent(){
-  total= total - readings[indexI];          
-    readings[indexI] = analogRead(0); //Raw data reading
-    readings[indexI] = (readings[indexI]-510)*5/1024/0.04-0.04;//Data processing:510-raw data from analogRead when the input is 0; 5-5v; the first 0.04-0.04V/A(sensitivity); the second 0.04-offset val;
-    total= total + readings[indexI];       
-    indexI = indexI + 1;                    
-    if (indexI >= numReadings)              
-      indexI = 0;                           
-    average = total/numReadings;   //Smoothing algorithm (http://www.arduino.cc/en/Tutorial/Smoothing)    
-    currentValue= average; // Current is stored in this variable 
-    //Serial.println(currentValue); // Print the current  
+void readCurrent() {
+  total = total - readings[indexI];
+  readings[indexI] = analogRead(0); //Raw data reading
+  readings[indexI] = (readings[indexI] - 510) * 5 / 1024 / 0.04 - 0.04; //Data processing:510-raw data from analogRead when the input is 0; 5-5v; the first 0.04-0.04V/A(sensitivity); the second 0.04-offset val;
+  total = total + readings[indexI];
+  indexI = indexI + 1;
+  if (indexI >= numReadings)
+    indexI = 0;
+  average = total / numReadings; //Smoothing algorithm (http://www.arduino.cc/en/Tutorial/Smoothing)
+  currentValue = average; // Current is stored in this variable
+  //Serial.println(currentValue); // Print the current
 }
 
 void updateEncoder() {
   encoderValue++;
 }
-void readangle(){
-  angle.number=encoderValue*60;
+void readangle() {
+  angle.number = encoderValue * 60;
 }
 void readNprintVolt() {
   float Ain = analogRead(A2);
@@ -236,7 +236,7 @@ void readRPM() {
   currentMillis = millis();
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
-    rpm = (float)(encoderValue * 30 /(currentMillis - previousMillis));
+    rpm = (float)(encoderValue * 30 / (currentMillis - previousMillis));
     encoderValue = 0;
   }
 }//readRPM
@@ -259,61 +259,61 @@ void receiveData(int byteCount) {
     pause = false;
 
   }
-  if (number[0] == 'P') {         //pause 
+  if (number[0] == 'P') {         //pause
     number[0] = 'n'; // just to get rid of it
 
     //stop
     pause = true;
   }
-  if (number[0] == 'R') {         //reset 
+  if (number[0] == 'R') {         //reset
     number[0] = 'n'; // just to get rid of it
 
     pause = true;
     stage = -1;
     state = 'i';
-    angle.number=0;
+    angle.number = 0;
   }
   Serial.print(number);
 }  // end while
 
 
-void buildDataToSend(){
-  dataToSend[0]=state;
-  dataToSend[1]=stage;
-  dataToSend[2]=angle.bytes[0];
-  dataToSend[3]=angle.bytes[1];
-  dataToSend[4]=torqueUni.bytes[0];
-  dataToSend[5]=torqueUni.bytes[1];
-  dataToSend[6]=accelerationX.bytes[0];
-  dataToSend[7]=accelerationX.bytes[1];
-  dataToSend[8]=accelerationX.bytes[2];
-  dataToSend[9]=accelerationX.bytes[3];
-  dataToSend[10]=accelerationY.bytes[0];
-  dataToSend[11]=accelerationY.bytes[1];
-  dataToSend[12]=accelerationY.bytes[2];
-  dataToSend[13]=accelerationY.bytes[3];
-  dataToSend[14]=accelerationZ.bytes[0];
-  dataToSend[15]=accelerationZ.bytes[1];
-  dataToSend[16]=accelerationZ.bytes[2];
-  dataToSend[17]=accelerationZ.bytes[3];
-  dataToSend[18]=0;
-  dataToSend[19]=0;
-  dataToSend[20]=0;
-  
+void buildDataToSend() {
+  dataToSend[0] = state;
+  dataToSend[1] = stage;
+  dataToSend[2] = angle.bytes[0];
+  dataToSend[3] = angle.bytes[1];
+  dataToSend[4] = torqueUni.bytes[0];
+  dataToSend[5] = torqueUni.bytes[1];
+  dataToSend[6] = accelerationX.bytes[0];
+  dataToSend[7] = accelerationX.bytes[1];
+  dataToSend[8] = accelerationX.bytes[2];
+  dataToSend[9] = accelerationX.bytes[3];
+  dataToSend[10] = accelerationY.bytes[0];
+  dataToSend[11] = accelerationY.bytes[1];
+  dataToSend[12] = accelerationY.bytes[2];
+  dataToSend[13] = accelerationY.bytes[3];
+  dataToSend[14] = accelerationZ.bytes[0];
+  dataToSend[15] = accelerationZ.bytes[1];
+  dataToSend[16] = accelerationZ.bytes[2];
+  dataToSend[17] = accelerationZ.bytes[3];
+  dataToSend[18] = 0;
+  dataToSend[19] = 0;
+  dataToSend[20] = 0;
+
 }
 void sendData() {
-   Wire.write(dataToSend[index]);
-    ++index;
-    if (index >= dataToSendLength) {
-         index = 0;
-    }
-    delay(10);
+  Wire.write(dataToSend[indexR]);
+  ++indexR;
+  if (indexR >= dataToSendLength) {
+    indexR = 0;
+  }
+  delay(10);
 }
 
 void sequenceA() {
   currentSequenceMillis = millis();
 
- 
+
   if (state == 'i' && stage == 0) {
     state = 'e';
     //start low speed
@@ -322,9 +322,9 @@ void sequenceA() {
     stage = 1;
     prevSequenceMillis = millis();
     //Serial.println("STAGE0");
-  } 
+  }
   //delay(10); //some value between 3 and 15 to take account for the rise time of the relays
-  
+
   if (state == 'e' && stage == 1 && (angle.number >= 3000 || (currentSequenceMillis - prevSequenceMillis) >= 1000)) {
     digitalWrite(SPEED_1, LOW);
     //Serial.println("STAGE 1");
@@ -332,17 +332,17 @@ void sequenceA() {
 
 }
 
-void sequenceB(){
-    currentSequenceMillis = millis();
-    readangle();
+void sequenceB() {
+  currentSequenceMillis = millis();
+  readangle();
 
- 
-  
+
+
   if (state == 'e' && stage == 1 && (angle.number >= 3000 || (currentSequenceMillis - prevSequenceMillis) >= 1000)) {
     digitalWrite(SPEED_1, LOW);
     //Serial.println("STAGE 1");
-  }  
-  
+  }
+
   if (state == 'i' && stage == 0) {
     state = 'e';
     //start low speed
@@ -351,12 +351,12 @@ void sequenceB(){
     stage = 1;
     prevSequenceMillis = millis();
     //Serial.println("STAGE0");
-  } 
+  }
 }
 
 void loop()
 {
-  angle.number=20;
+  angle.number = 20;
   buildDataToSend();
   sequenceA();
   readangle();
@@ -365,7 +365,7 @@ void loop()
   readNprintVolt();
   readCurrent();
   Serial.print("STAGE : "); Serial.print(stage); Serial.print(" Encoder : "); Serial.print(encoderValue);
-  Serial.print(" CURRENT : "); Serial.print(currentValue); 
+  Serial.print(" CURRENT : "); Serial.print(currentValue);
   Serial.print(" angle.number : "); Serial.print(angle.number); Serial.print(" RPM : "); Serial.println(rpm);
 
 }
